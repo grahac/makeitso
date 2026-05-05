@@ -24,7 +24,27 @@ The product-only-interview skill governs how you talk to the user. The triage sk
 
 **The discipline is non-negotiable.** Even if the user volunteers "you can ask me technical stuff, I don't mind" — politely decline and continue product-only. They almost always regret giving permission once you start asking technical questions. If they want to drive technical decisions they can use plain GSD or compound-engineering directly.
 
-## Step 2 — Confirm the project is initialized for makeitso
+## Step 2 — Bootstrap global skills (first-run only)
+
+GSD's `agent_skills` injection looks for `global:` skills at `~/.claude/skills/<skill-name>/SKILL.md`. The plugin's own skill copies live at `${CLAUDE_PLUGIN_ROOT}/skills/` and are NOT auto-discovered there. We need to copy them once.
+
+For each of the two skills the planning config references (`product-only-interview` and `triage-product-vs-technical`):
+
+```bash
+for skill in product-only-interview triage-product-vs-technical; do
+  if [ ! -f "$HOME/.claude/skills/$skill/SKILL.md" ]; then
+    mkdir -p "$HOME/.claude/skills/$skill"
+    cp "${CLAUDE_PLUGIN_ROOT}/skills/$skill/SKILL.md" "$HOME/.claude/skills/$skill/SKILL.md"
+    echo "Bootstrapped: $skill"
+  fi
+done
+```
+
+This is idempotent — does nothing if the skills are already there. Do not show this command to the user; just run it silently. Tell them only if a copy was needed: "First-time setup: copied two helper skills into ~/.claude/skills/."
+
+If the copy fails (permission error, weird filesystem), surface it: "I couldn't set up the global skills directory at `~/.claude/skills/`. The autopilot needs that directory to be writable. Can you check it?"
+
+## Step 3 — Confirm the project is initialized for makeitso
 
 Check whether the current directory has `.planning/config.json`:
 
@@ -43,7 +63,7 @@ This installs the makeitso defaults (correct `agent_skills` injection with `glob
 
 **If it exists:** Check whether it has `agent_skills` configured for the triage skill on the right GSD agent slugs (`gsd-verifier`, `gsd-plan-checker`, `gsd-integration-checker`, `gsd-executor`, `gsd-nyquist-auditor`, `gsd-assumptions-analyzer`). If not, ask the user: "This directory already has GSD configured. I can layer makeitso on top, or you can keep using GSD as-is. Which do you want?" — and respect their answer.
 
-## Step 3 — Open the conversation
+## Step 4 — Open the conversation
 
 If the user already provided context in their command invocation (e.g., `/start build a tip calculator`), use it. Otherwise ask, in plain English:
 
@@ -51,7 +71,7 @@ If the user already provided context in their command invocation (e.g., `/start 
 
 Wait for their full answer. Do not ask follow-up questions until they finish.
 
-## Step 4 — Product-only interview (3–5 questions max)
+## Step 5 — Product-only interview (3–5 questions max)
 
 Apply the product-only-interview skill rigorously. Ask only about:
 
@@ -73,7 +93,7 @@ When you have enough context, summarize back in plain English:
 
 Wait for confirmation or correction.
 
-## Step 5 — Hand off to GSD
+## Step 6 — Hand off to GSD
 
 Once the user confirms, choose the right GSD entry point:
 
@@ -83,7 +103,7 @@ Once the user confirms, choose the right GSD entry point:
 
 Pass along the user's idea and the product context you gathered. **Do not let GSD's own discussion phase re-interview the user with technical questions.** The agent_skills injection handles the subagent side; your in-context discipline handles the orchestrator side. If GSD's workflow tries to ask the user a technical question (even one rephrased to sound product-like), apply the triage skill and answer it yourself.
 
-## Step 6 — Run autonomously
+## Step 7 — Run autonomously
 
 After discussion, invoke `/gsd-autonomous` to run discuss → plan → execute → review without further human gates (subject to safety thresholds in the planning config).
 
@@ -91,7 +111,7 @@ While GSD runs:
 - **Watch for any user-prompt event.** Apply the triage skill before letting it surface. Product → pass through in plain English. Technical → answer yourself, log to `.planning/<phase>/DECISIONS.md`, signal proceed.
 - **Cost / time / scope walls:** these are product-level. Surface in plain English: "This is taking longer than expected — about [N] hours of work and [M] decisions to make. Want me to keep going, take a different approach, or pause?"
 
-## Step 7 — Report
+## Step 8 — Report
 
 When work is done, summarize in product language:
 

@@ -22,7 +22,7 @@ It does **not** ask you about architecture, frameworks, libraries, schemas, file
 
 ## How it works
 
-`makeitso` is a thin wrapper over [GSD](https://github.com/dsifry/get-shit-done). It adds:
+`makeitso` is a thin wrapper over [GSD](https://github.com/gsd-build/get-shit-done). It adds:
 
 1. **`product-only-interview`** skill — applied during the discussion phase so questions are always framed in user-visible terms, never technical ones.
 2. **`triage-product-vs-technical`** skill — injected into GSD subagents (`gsd-verifier`, `gsd-plan-checker`, `gsd-integration-checker`, `gsd-executor`, `gsd-nyquist-auditor`, `gsd-assumptions-analyzer`). Before any pause-for-user, the agent classifies the pending question. Product questions surface in plain English. Technical questions are auto-resolved and logged to `.planning/<phase>/DECISIONS.md`.
@@ -31,12 +31,29 @@ It does **not** ask you about architecture, frameworks, libraries, schemas, file
 
 ## Install
 
-This plugin requires [GSD](https://github.com/dsifry/get-shit-done) to be installed.
+makeitso depends on two other plugins. Install all three in order:
+
+### 1. Install GSD
+
+makeitso wraps GSD's autonomous discuss → plan → execute → review loop. Install per the GSD docs at **https://github.com/gsd-build/get-shit-done**.
+
+### 2. Install compound-engineering
+
+makeitso routes code review to compound-engineering's full reviewer spectrum (correctness, maintainability, testing, simplicity, performance, security, reliability, adversarial). Without it, the code review step in the autopilot will fail.
+
+```
+/plugin marketplace add EveryInc/compound-engineering-plugin
+/plugin install compound-engineering@compound-engineering-plugin
+```
+
+### 3. Install makeitso
 
 ```
 /plugin marketplace add second-coffee/makeitso
 /plugin install makeitso@makeitso-marketplace
 ```
+
+That's it — the first time you run `/start`, makeitso copies its two helper skills into `~/.claude/skills/` so GSD can find them via the `global:` prefix. Subsequent runs are instant.
 
 ## Usage
 
@@ -47,12 +64,13 @@ In any project directory:
 ```
 
 It will:
-1. Set up `.planning/config.json` if missing
-2. Ask what you want built (one prompt, plain English)
-3. Ask 3–5 follow-up questions, **all in product language**
-4. Hand to GSD's autonomous loop with the right discipline applied
-5. Surface only product-level questions during the run
-6. Notify you when the work is ready
+1. Bootstrap helper skills into `~/.claude/skills/` (first run only)
+2. Set up `.planning/config.json` if missing
+3. Ask what you want built (one prompt, plain English)
+4. Ask 3–5 follow-up questions, **all in product language**
+5. Hand to GSD's autonomous loop with the right discipline applied
+6. Surface only product-level questions during the run
+7. Notify you when the work is ready
 
 To see where things are:
 
