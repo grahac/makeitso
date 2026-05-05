@@ -1,0 +1,17 @@
+{
+  "name": "makeitso-marketplace",
+  "owner": {
+    "name": "Second Coffee",
+    "url": "https://github.com/second-coffee"
+  },
+  "plugins": [
+    {
+      "name": "makeitso",
+      "source": "./plugins/makeitso",
+      "description": "Non-dev autopilot. Run /start (or /plan or /discuss) and describe what you want built — the system interviews you in product language, then builds it autonomously.",
+      "version": "0.1.0",
+      "category": "productivity",
+      "tags": ["non-developer", "autopilot", "gsd", "product"]
+    }
+  ]
+}
