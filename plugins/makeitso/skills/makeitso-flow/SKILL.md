@@ -98,8 +98,8 @@ Wait for confirmation or correction.
 Once the user confirms, choose the right GSD entry point:
 
 - Brand-new directory with no roadmap → `/gsd-new-project`
-- Roadmap exists, adding new work → `/gsd-add-phase`
-- Small enough to be one phase already in flight → `/gsd-do`
+- Roadmap exists, adding new work → `/gsd-phase --add`
+- Small enough to be one phase already in flight → `/gsd-progress --do`
 
 Pass along the user's idea and the product context you gathered. **Do not let GSD's own discussion phase re-interview the user with technical questions.** The agent_skills injection handles the subagent side; your in-context discipline handles the orchestrator side. If GSD's workflow tries to ask the user a technical question (even one rephrased to sound product-like), apply the triage skill and answer it yourself.
 
