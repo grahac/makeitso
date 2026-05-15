@@ -2,11 +2,11 @@
   "name": "makeitso",
   "version": "0.1.0",
   "description": "Non-developer autopilot for engineering work. Three doors in (/start, /plan, /discuss) lead to the same product-only interview, then runs discuss → plan → execute → review autonomously, only stopping for product-level questions.",
-  "homepage": "https://github.com/second-coffee/makeitso",
-  "repository": "https://github.com/second-coffee/makeitso",
+  "homepage": "https://github.com/grahac/makeitso",
+  "repository": "https://github.com/grahac/makeitso",
   "license": "MIT",
   "author": {
-    "name": "Second Coffee",
-    "url": "https://github.com/second-coffee"
+    "name": "Charlie Graham",
+    "url": "https://github.com/grahac"
   }
 }

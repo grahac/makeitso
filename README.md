@@ -49,7 +49,7 @@ makeitso routes code review to compound-engineering's full reviewer spectrum (co
 ### 3. Install makeitso
 
 ```
-/plugin marketplace add second-coffee/makeitso
+/plugin marketplace add grahac/makeitso
 /plugin install makeitso@makeitso-marketplace
 ```
 
