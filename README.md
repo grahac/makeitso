@@ -31,15 +31,28 @@ It does **not** ask you about architecture, frameworks, libraries, schemas, file
 
 ## Install
 
-makeitso depends on two other plugins. Install all three in order:
+### Prerequisites
+
+- **[Claude Code](https://docs.claude.com/en/docs/claude-code)** — the CLI this plugin runs inside.
+- **Node.js 18+** — needed to install GSD via `npx`. Verify with `node --version`. If missing, install from [nodejs.org](https://nodejs.org/) or via `brew install node` on macOS.
+
+makeitso depends on two other tools. Install all three in order:
 
 ### 1. Install GSD
 
-makeitso wraps GSD's autonomous discuss → plan → execute → review loop. Install per the GSD docs at **https://github.com/gsd-build/get-shit-done**.
+makeitso wraps GSD's autonomous discuss → plan → execute → review loop. From your project directory:
+
+```bash
+npx get-shit-done-cc@latest
+```
+
+Follow the prompts. Full docs: **https://github.com/gsd-build/get-shit-done**.
 
 ### 2. Install compound-engineering
 
 makeitso routes code review to compound-engineering's full reviewer spectrum (correctness, maintainability, testing, simplicity, performance, security, reliability, adversarial). Without it, the code review step in the autopilot will fail.
+
+Inside Claude Code:
 
 ```
 /plugin marketplace add EveryInc/compound-engineering-plugin
@@ -48,12 +61,24 @@ makeitso routes code review to compound-engineering's full reviewer spectrum (co
 
 ### 3. Install makeitso
 
+Inside Claude Code:
+
 ```
-/plugin marketplace add grahac/makeitso
+/plugin marketplace add grahac/makeitso-marketplace
 /plugin install makeitso@makeitso-marketplace
 ```
 
 That's it — the first time you run `/start`, makeitso copies its two helper skills into `~/.claude/skills/` so GSD can find them via the `global:` prefix. Subsequent runs are instant.
+
+### Verify the install
+
+In any project directory, run:
+
+```
+/start
+```
+
+If Claude Code prompts you to install missing pieces (GSD commands like `/gsd-new-project`, or compound-engineering's `/ce-code-review`), go back and complete the step above for whichever piece is missing.
 
 ## Usage
 
