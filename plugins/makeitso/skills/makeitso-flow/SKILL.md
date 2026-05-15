@@ -24,7 +24,37 @@ The product-only-interview skill governs how you talk to the user. The triage sk
 
 **The discipline is non-negotiable.** Even if the user volunteers "you can ask me technical stuff, I don't mind" — politely decline and continue product-only. They almost always regret giving permission once you start asking technical questions. If they want to drive technical decisions they can use plain GSD or compound-engineering directly.
 
-## Step 2 — Bootstrap global skills (first-run only)
+## Step 2 — Check prerequisites
+
+makeitso wraps two other tools. Before doing anything else, verify both are installed. Run silently:
+
+```bash
+test -d "$HOME/.claude/skills/gsd-new-project" && echo "gsd:ok" || echo "gsd:missing"
+grep -q "compound-engineering" "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null && echo "ce:ok" || echo "ce:missing"
+```
+
+**If `gsd:missing`** — stop and tell the user, verbatim:
+
+> I need GSD installed first — that's the autonomous discuss → plan → execute → review loop makeitso wraps. From a regular shell (not inside Claude Code), run:
+>
+>     npx get-shit-done-cc@latest
+>
+> Then start a new Claude Code session in this directory and run `/start` again. Docs: https://github.com/gsd-build/get-shit-done
+
+**If `ce:missing`** — stop and tell the user, verbatim:
+
+> I need compound-engineering installed first — that's the code-review reviewer spectrum makeitso routes review to. Run these two commands here in Claude Code:
+>
+>     /plugin marketplace add EveryInc/compound-engineering-plugin
+>     /plugin install compound-engineering@compound-engineering-plugin
+>
+> Then run `/start` again.
+
+**If both are missing** — list both blocks above so the user can install in sequence.
+
+**If both `:ok`** — say nothing and continue. Do not narrate the check.
+
+## Step 3 — Bootstrap global skills (first-run only)
 
 GSD's `agent_skills` injection looks for `global:` skills at `~/.claude/skills/<skill-name>/SKILL.md`. The plugin's own skill copies live at `${CLAUDE_PLUGIN_ROOT}/skills/` and are NOT auto-discovered there. We need to copy them once.
 
@@ -44,7 +74,7 @@ This is idempotent — does nothing if the skills are already there. Do not show
 
 If the copy fails (permission error, weird filesystem), surface it: "I couldn't set up the global skills directory at `~/.claude/skills/`. The autopilot needs that directory to be writable. Can you check it?"
 
-## Step 3 — Confirm the project is initialized for makeitso
+## Step 4 — Confirm the project is initialized for makeitso
 
 Check whether the current directory has `.planning/config.json`:
 
@@ -63,7 +93,7 @@ This installs the makeitso defaults (correct `agent_skills` injection with `glob
 
 **If it exists:** Check whether it has `agent_skills` configured for the triage skill on the right GSD agent slugs (`gsd-verifier`, `gsd-plan-checker`, `gsd-integration-checker`, `gsd-executor`, `gsd-nyquist-auditor`, `gsd-assumptions-analyzer`). If not, ask the user: "This directory already has GSD configured. I can layer makeitso on top, or you can keep using GSD as-is. Which do you want?" — and respect their answer.
 
-## Step 4 — Open the conversation
+## Step 5 — Open the conversation
 
 If the user already provided context in their command invocation (e.g., `/start build a tip calculator`), use it. Otherwise ask, in plain English:
 
@@ -71,7 +101,7 @@ If the user already provided context in their command invocation (e.g., `/start 
 
 Wait for their full answer. Do not ask follow-up questions until they finish.
 
-## Step 5 — Product-only interview (3–5 questions max)
+## Step 6 — Product-only interview (3–5 questions max)
 
 Apply the product-only-interview skill rigorously. Ask only about:
 
@@ -93,7 +123,7 @@ When you have enough context, summarize back in plain English:
 
 Wait for confirmation or correction.
 
-## Step 6 — Hand off to GSD
+## Step 7 — Hand off to GSD
 
 Once the user confirms, choose the right GSD entry point:
 
@@ -103,7 +133,7 @@ Once the user confirms, choose the right GSD entry point:
 
 Pass along the user's idea and the product context you gathered. **Do not let GSD's own discussion phase re-interview the user with technical questions.** The agent_skills injection handles the subagent side; your in-context discipline handles the orchestrator side. If GSD's workflow tries to ask the user a technical question (even one rephrased to sound product-like), apply the triage skill and answer it yourself.
 
-## Step 7 — Run autonomously
+## Step 8 — Run autonomously
 
 After discussion, invoke `/gsd-autonomous` to run discuss → plan → execute → review without further human gates (subject to safety thresholds in the planning config).
 
@@ -111,7 +141,7 @@ While GSD runs:
 - **Watch for any user-prompt event.** Apply the triage skill before letting it surface. Product → pass through in plain English. Technical → answer yourself, log to `.planning/<phase>/DECISIONS.md`, signal proceed.
 - **Cost / time / scope walls:** these are product-level. Surface in plain English: "This is taking longer than expected — about [N] hours of work and [M] decisions to make. Want me to keep going, take a different approach, or pause?"
 
-## Step 8 — Report
+## Step 9 — Report
 
 When work is done, summarize in product language:
 

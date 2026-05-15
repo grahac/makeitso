@@ -48,7 +48,7 @@ Continue an in-flight run that was interrupted (compaction, crash, manual stop, 
 5. Then proceed exactly as the makeitso-flow skill would from the relevant step:
    - Apply product-only-interview discipline if any user input is needed.
    - Apply triage on every potential pause.
-   - When done, summarize in product language per the makeitso-flow's "Step 8 — Report" pattern.
+   - When done, summarize in product language per the makeitso-flow's "Step 9 — Report" pattern.
 
 ## Anti-patterns
 
