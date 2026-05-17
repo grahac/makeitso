@@ -2,8 +2,9 @@
 name: makeitso-flow
 description: |
   The shared autopilot flow invoked by /start, /plan, and /discuss.
-  Runs a product-only interview, then hands to GSD's discuss → plan →
-  execute → review loop with the triage skill governing every pause.
+  Runs a product-only interview, hands roadmap-and-phase planning to GSD,
+  then drives the per-phase execute → review → fix loop via
+  /makeitso-autopilot. The triage skill governs every pause.
 
   Not intended for direct user invocation — always reached through one
   of the three entry-point slash commands.
@@ -123,19 +124,37 @@ Once the user confirms, choose the right GSD entry point:
 
 Pass along the user's idea and the product context you gathered. **Do not let GSD's own discussion phase re-interview the user with technical questions.** The agent_skills injection handles the subagent side; your in-context discipline handles the orchestrator side. If GSD's workflow tries to ask the user a technical question (even one rephrased to sound product-like), apply the triage skill and answer it yourself.
 
-## Step 8 — Run autonomously
+## Step 8 — Run autonomously, phase by phase
 
-After discussion, invoke `/gsd-autonomous` to run discuss → plan → execute → review without further human gates (subject to safety thresholds in the planning config).
+After GSD has planned the roadmap and phases, you drive the per-phase loop yourself using `/makeitso-autopilot`. This is the autonomous code → review → fix → re-review loop, owned by makeitso rather than delegated to GSD's autonomous mode (which doesn't review per-phase).
 
-While GSD runs:
+For each phase from the roadmap, in order:
+
+1. **Run the autopilot for that phase:**
+
+   ```
+   /makeitso-autopilot ${PHASE_NUMBER}
+   ```
+
+   This executes the phase's plans, runs `/makeitso-review`, and fix-loops on HIGH findings up to 3 times. It returns when the phase is `ship`-clean, when a `rework` verdict appears, or when the iteration cap is hit.
+
+2. **If the autopilot returns "needs human"** (rework verdict or cap hit) — stop the autonomous flow. Surface the latest review report and the autopilot's summary. Ask the user, in plain English, how they want to proceed: "There are problems I couldn't fix automatically on phase ${N}. Here's what's left. Want me to try a different approach, walk you through fixing it, or pause this for now?"
+
+3. **If the autopilot returns "phase done"** — honor the `gates.confirm_transition` flag from `.planning/config.json`:
+   - If `confirm_transition: true` → pause and ask the user, product-language only: "Phase ${N} (${PHASE_NAME}) is done. [one-paragraph summary of what now exists]. Ready to move on to phase ${N+1} (${NEXT_PHASE_NAME})?"
+   - If `confirm_transition: false` → continue straight to the next phase without prompting.
+
+4. **Repeat** until all phases are done.
+
+While the autopilot runs each phase:
 - **Watch for any user-prompt event.** Apply the triage skill before letting it surface. Product → pass through in plain English. Technical → answer yourself, log to `.planning/<phase>/DECISIONS.md`, signal proceed.
 - **Cost / time / scope walls:** these are product-level. Surface in plain English: "This is taking longer than expected — about [N] hours of work and [M] decisions to make. Want me to keep going, take a different approach, or pause?"
 
 ## Step 9 — Report
 
-When work is done, summarize in product language:
+When all phases are done, summarize in product language:
 
-> "Done. Here's what's now in place: [one paragraph]. Here's how to try it: [one short instruction]. [N] technical decisions were made along the way — they're in `.planning/<phase>/DECISIONS.md` if you want to review them."
+> "Done. Here's what's now in place: [one paragraph]. Here's how to try it: [one short instruction]. [N] technical decisions were made along the way — they're in `.planning/<phase>/DECISIONS.md` if you want to review them. The autopilot caught and fixed [M] issues during review along the way."
 
 Do not list every commit. Do not show the diff unless asked. Match the user's level — non-dev users want to know "is it working" and "how do I use it," nothing more.
 

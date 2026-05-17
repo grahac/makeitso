@@ -1,6 +1,6 @@
 ---
 description: "Multi-perspective code review of the current branch. Runs six reviewer subagents in parallel (correctness, testing, maintainability, simplicity, security, performance) and merges their findings into a single report grouped by severity."
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # /makeitso-review
@@ -31,7 +31,7 @@ If the file list is empty, say: "Nothing to review — no changes between this b
 
 ## Step 2 — Run reviewers in parallel
 
-Spawn all five reviewer subagents in a single message using the Task tool. Each call uses `subagent_type` set to the reviewer's name, and a prompt that gives:
+Spawn all six reviewer subagents in a single message using the Task tool. Each call uses `subagent_type` set to the reviewer's name, and a prompt that gives:
 
 - The base ref
 - The list of changed files
@@ -97,12 +97,14 @@ The makeitso audience is often non-technical. At the very top of the report (abo
 - If everything is clean: "I checked the new work from six angles and didn't find anything blocking. It looks ready to use."
 - If there are HIGH findings: end with a one-line recommendation ("I'd fix the high-priority ones before considering this done.").
 
-## Step 5 — Exit code semantics
+## Step 5 — Recommendation line
 
-If invoked from GSD's autonomous loop, GSD will read the report for go/no-go signal. Make the recommendation explicit at the end of the report on its own line:
+The very last line of the report must be one of:
 
 - `RECOMMENDATION: ship` — no HIGH findings.
-- `RECOMMENDATION: fix-then-ship` — HIGH findings exist but all have clear fixes.
-- `RECOMMENDATION: rework` — multiple HIGH findings in correctness or security indicating the approach needs rethinking.
+- `RECOMMENDATION: fix-then-ship` — HIGH findings exist but all have clear, local fixes.
+- `RECOMMENDATION: rework` — multiple HIGH findings in correctness or security indicating the approach itself needs rethinking, not patching.
+
+`/makeitso-autopilot` parses this line to decide whether to fix-loop, advance, or stop and surface the report to the user. Make sure it's the literal last line of the output, on its own line, exactly in that format.
 
 That's the whole review.
