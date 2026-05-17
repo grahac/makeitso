@@ -8,7 +8,7 @@
     "auto_advance": false,
     "discuss_mode": "discuss",
     "research_before_questions": false,
-    "code_review_command": "/ce-code-review",
+    "code_review_command": "/makeitso-review",
     "cross_ai_execution": false,
     "cross_ai_command": ""
   },

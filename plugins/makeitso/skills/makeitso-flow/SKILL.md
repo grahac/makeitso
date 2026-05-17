@@ -22,15 +22,14 @@ Before anything else, read these two skills and apply them throughout this sessi
 
 The product-only-interview skill governs how you talk to the user. The triage skill governs how you handle every "should I ask the user about X?" decision from now until the work is done.
 
-**The discipline is non-negotiable.** Even if the user volunteers "you can ask me technical stuff, I don't mind" — politely decline and continue product-only. They almost always regret giving permission once you start asking technical questions. If they want to drive technical decisions they can use plain GSD or compound-engineering directly.
+**The discipline is non-negotiable.** Even if the user volunteers "you can ask me technical stuff, I don't mind" — politely decline and continue product-only. They almost always regret giving permission once you start asking technical questions. If they want to drive technical decisions they can use plain GSD directly.
 
 ## Step 2 — Check prerequisites
 
-makeitso wraps two other tools. Before doing anything else, verify both are installed. Run silently:
+makeitso wraps GSD. Before doing anything else, verify it's installed. Run silently:
 
 ```bash
 test -d "$HOME/.claude/skills/gsd-new-project" && echo "gsd:ok" || echo "gsd:missing"
-grep -q "compound-engineering" "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null && echo "ce:ok" || echo "ce:missing"
 ```
 
 **If `gsd:missing`** — stop and tell the user, verbatim:
@@ -41,18 +40,9 @@ grep -q "compound-engineering" "$HOME/.claude/plugins/installed_plugins.json" 2>
 >
 > Then start a new Claude Code session in this directory and run `/start` again. Docs: https://github.com/gsd-build/get-shit-done
 
-**If `ce:missing`** — stop and tell the user, verbatim:
+**If `gsd:ok`** — say nothing and continue. Do not narrate the check.
 
-> I need compound-engineering installed first — that's the code-review reviewer spectrum makeitso routes review to. Run these two commands here in Claude Code:
->
->     /plugin marketplace add EveryInc/compound-engineering-plugin
->     /plugin install compound-engineering@compound-engineering-plugin
->
-> Then run `/start` again.
-
-**If both are missing** — list both blocks above so the user can install in sequence.
-
-**If both `:ok`** — say nothing and continue. Do not narrate the check.
+Code review is handled by makeitso's bundled `/makeitso-review` (five reviewer subagents — correctness, testing, maintainability, simplicity, security). It's installed automatically with this plugin. If the user wants the richer compound-engineering reviewer spectrum instead, they can install it separately and set `code_review_command` to `/ce-code-review` in `.planning/config.json`.
 
 ## Step 3 — Bootstrap global skills (first-run only)
 
@@ -89,7 +79,7 @@ mkdir -p .planning
 cp ${CLAUDE_PLUGIN_ROOT}/templates/planning-config.json .planning/config.json
 ```
 
-This installs the makeitso defaults (correct `agent_skills` injection with `global:` prefixes, code-review routing to `/ce-code-review`, sensible gate posture).
+This installs the makeitso defaults (correct `agent_skills` injection with `global:` prefixes, code-review routing to `/makeitso-review`, sensible gate posture).
 
 **If it exists:** Check whether it has `agent_skills` configured for the triage skill on the right GSD agent slugs (`gsd-verifier`, `gsd-plan-checker`, `gsd-integration-checker`, `gsd-executor`, `gsd-nyquist-auditor`, `gsd-assumptions-analyzer`). If not, ask the user: "This directory already has GSD configured. I can layer makeitso on top, or you can keep using GSD as-is. Which do you want?" — and respect their answer.
 
