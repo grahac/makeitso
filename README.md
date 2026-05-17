@@ -27,7 +27,7 @@ It does **not** ask you about architecture, frameworks, libraries, schemas, file
 1. **`product-only-interview`** skill — applied during the discussion phase so questions are always framed in user-visible terms, never technical ones.
 2. **`triage-product-vs-technical`** skill — injected into GSD subagents (`gsd-verifier`, `gsd-plan-checker`, `gsd-integration-checker`, `gsd-executor`, `gsd-nyquist-auditor`, `gsd-assumptions-analyzer`). Before any pause-for-user, the agent classifies the pending question. Product questions surface in plain English. Technical questions are auto-resolved and logged to `.planning/<phase>/DECISIONS.md`.
 3. **A default `.planning/config.json` template** with the right `agent_skills` injection, `code_review_command: "/makeitso-review"` (routes review to the bundled reviewer spectrum), and sensible parallelization defaults.
-4. **`/makeitso-review`** — a bundled code-review orchestrator that fans out to five reviewer subagents in parallel (correctness, testing, maintainability, simplicity, security) and merges findings into a single report. Inspired by [compound-engineering](https://github.com/EveryInc/compound-engineering-plugin)'s reviewer spectrum but trimmed and self-contained, so makeitso has no required runtime plugin dependency beyond GSD.
+4. **`/makeitso-review`** — a bundled code-review orchestrator that fans out to six reviewer subagents in parallel (correctness, testing, maintainability, simplicity, security, performance) and merges findings into a single report. Inspired by [compound-engineering](https://github.com/EveryInc/compound-engineering-plugin)'s reviewer spectrum but trimmed and self-contained, so makeitso has no required runtime plugin dependency beyond GSD.
 5. **A default permissions allowlist** so non-dev users don't get prompted constantly during autonomous runs.
 
 ## Install
@@ -62,7 +62,7 @@ That's it — the first time you run `/start`, makeitso copies its two helper sk
 
 ### Optional: use compound-engineering for code review instead
 
-makeitso ships with `/makeitso-review` (five reviewer subagents) as the default. If you want the richer compound-engineering reviewer spectrum (~20 reviewers, including stack-specific ones for Rails / Python / TypeScript / Swift, plus adversarial and reliability lenses), install it separately and point the config at it:
+makeitso ships with `/makeitso-review` (six reviewer subagents) as the default. If you want the richer compound-engineering reviewer spectrum (~20 reviewers, including stack-specific ones for Rails / Python / TypeScript / Swift, plus adversarial and reliability lenses), install it separately and point the config at it:
 
 ```
 /plugin marketplace add EveryInc/compound-engineering-plugin

@@ -1,11 +1,11 @@
 ---
-description: "Multi-perspective code review of the current branch. Runs five reviewer subagents in parallel (correctness, testing, maintainability, simplicity, security) and merges their findings into a single report grouped by severity."
+description: "Multi-perspective code review of the current branch. Runs six reviewer subagents in parallel (correctness, testing, maintainability, simplicity, security, performance) and merges their findings into a single report grouped by severity."
 disable-model-invocation: true
 ---
 
 # /makeitso-review
 
-You are running makeitso's bundled code review. This is the default reviewer invoked by GSD's `code_review_command`. It's lightweight on purpose — five focused reviewer subagents in parallel, no PR-platform integration, no auto-fix. Power users who want a richer review can point `code_review_command` at `/ce-code-review` (compound-engineering) instead.
+You are running makeitso's bundled code review. This is the default reviewer invoked by GSD's `code_review_command`. It's lightweight on purpose — six focused reviewer subagents in parallel, no PR-platform integration, no auto-fix. Power users who want a richer review can point `code_review_command` at `/ce-code-review` (compound-engineering) instead.
 
 ## Step 1 — Detect scope
 
@@ -45,6 +45,7 @@ Reviewers to invoke:
 - `mi-maintainability-reviewer`
 - `mi-simplicity-reviewer`
 - `mi-security-reviewer`
+- `mi-performance-reviewer`
 
 Suggested prompt template for each subagent:
 
@@ -56,7 +57,7 @@ Suggested prompt template for each subagent:
 >
 > Use `git diff <base>...HEAD -- <file>` to see each change, read files at HEAD with the Read tool when you need surrounding context, and follow the output format in your agent definition exactly. Be specific — every finding must cite file and line.
 
-Run all five **in parallel** (one message, five Task tool calls). Wait for all to return.
+Run all six **in parallel** (one message, six Task tool calls). Wait for all to return.
 
 ## Step 3 — Merge findings
 
@@ -67,7 +68,7 @@ Collect each reviewer's markdown output. Build a single report with this structu
 
 **Base:** <base ref>
 **Files reviewed:** <count> file(s)
-**Reviewers:** correctness, testing, maintainability, simplicity, security
+**Reviewers:** correctness, testing, maintainability, simplicity, security, performance
 
 ## Summary
 
@@ -92,8 +93,8 @@ When merging, dedupe by `file:line + finding class`. If two reviewers disagree a
 
 The makeitso audience is often non-technical. At the very top of the report (above the `# Code review` heading), include a 2–3 sentence plain-English summary:
 
-- "I checked the new work from five angles. Found [N] things worth your attention — [M] high priority, [K] medium."
-- If everything is clean: "I checked the new work from five angles and didn't find anything blocking. It looks ready to use."
+- "I checked the new work from six angles. Found [N] things worth your attention — [M] high priority, [K] medium."
+- If everything is clean: "I checked the new work from six angles and didn't find anything blocking. It looks ready to use."
 - If there are HIGH findings: end with a one-line recommendation ("I'd fix the high-priority ones before considering this done.").
 
 ## Step 5 — Exit code semantics

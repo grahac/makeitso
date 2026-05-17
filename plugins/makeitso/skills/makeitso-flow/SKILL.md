@@ -42,7 +42,7 @@ test -d "$HOME/.claude/skills/gsd-new-project" && echo "gsd:ok" || echo "gsd:mis
 
 **If `gsd:ok`** — say nothing and continue. Do not narrate the check.
 
-Code review is handled by makeitso's bundled `/makeitso-review` (five reviewer subagents — correctness, testing, maintainability, simplicity, security). It's installed automatically with this plugin. If the user wants the richer compound-engineering reviewer spectrum instead, they can install it separately and set `code_review_command` to `/ce-code-review` in `.planning/config.json`.
+Code review is handled by makeitso's bundled `/makeitso-review` (six reviewer subagents — correctness, testing, maintainability, simplicity, security, performance). It's installed automatically with this plugin. If the user wants the richer compound-engineering reviewer spectrum instead, they can install it separately and set `code_review_command` to `/ce-code-review` in `.planning/config.json`.
 
 ## Step 3 — Bootstrap global skills (first-run only)
 
