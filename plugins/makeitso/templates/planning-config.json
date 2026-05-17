@@ -31,7 +31,7 @@
     "confirm_plan": false,
     "execute_next_plan": false,
     "issues_review": false,
-    "confirm_transition": true
+    "confirm_transition": false
   },
   "agent_skills": {
     "gsd-assumptions-analyzer": ["global:product-only-interview", "global:triage-product-vs-technical"],
