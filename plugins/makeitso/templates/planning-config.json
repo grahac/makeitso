@@ -8,7 +8,7 @@
     "auto_advance": false,
     "discuss_mode": "discuss",
     "research_before_questions": false,
-    "code_review_command": "/ce-code-review",
+    "code_review_command": "/makeitso-review",
     "cross_ai_execution": false,
     "cross_ai_command": ""
   },
@@ -24,14 +24,14 @@
     "max_concurrent_agents": 3
   },
   "gates": {
-    "confirm_project": true,
-    "confirm_phases": true,
-    "confirm_roadmap": true,
-    "confirm_breakdown": true,
-    "confirm_plan": true,
-    "execute_next_plan": true,
-    "issues_review": true,
-    "confirm_transition": true
+    "confirm_project": false,
+    "confirm_phases": false,
+    "confirm_roadmap": false,
+    "confirm_breakdown": false,
+    "confirm_plan": false,
+    "execute_next_plan": false,
+    "issues_review": false,
+    "confirm_transition": false
   },
   "agent_skills": {
     "gsd-assumptions-analyzer": ["global:product-only-interview", "global:triage-product-vs-technical"],

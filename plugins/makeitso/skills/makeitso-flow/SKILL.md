@@ -2,8 +2,9 @@
 name: makeitso-flow
 description: |
   The shared autopilot flow invoked by /start, /plan, and /discuss.
-  Runs a product-only interview, then hands to GSD's discuss → plan →
-  execute → review loop with the triage skill governing every pause.
+  Runs a product-only interview, hands roadmap-and-phase planning to GSD,
+  then drives the per-phase execute → review → fix loop via
+  /makeitso-autopilot. The triage skill governs every pause.
 
   Not intended for direct user invocation — always reached through one
   of the three entry-point slash commands.
@@ -22,15 +23,14 @@ Before anything else, read these two skills and apply them throughout this sessi
 
 The product-only-interview skill governs how you talk to the user. The triage skill governs how you handle every "should I ask the user about X?" decision from now until the work is done.
 
-**The discipline is non-negotiable.** Even if the user volunteers "you can ask me technical stuff, I don't mind" — politely decline and continue product-only. They almost always regret giving permission once you start asking technical questions. If they want to drive technical decisions they can use plain GSD or compound-engineering directly.
+**The discipline is non-negotiable.** Even if the user volunteers "you can ask me technical stuff, I don't mind" — politely decline and continue product-only. They almost always regret giving permission once you start asking technical questions. If they want to drive technical decisions they can use plain GSD directly.
 
 ## Step 2 — Check prerequisites
 
-makeitso wraps two other tools. Before doing anything else, verify both are installed. Run silently:
+makeitso wraps GSD. Before doing anything else, verify it's installed. Run silently:
 
 ```bash
 test -d "$HOME/.claude/skills/gsd-new-project" && echo "gsd:ok" || echo "gsd:missing"
-grep -q "compound-engineering" "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null && echo "ce:ok" || echo "ce:missing"
 ```
 
 **If `gsd:missing`** — stop and tell the user, verbatim:
@@ -41,18 +41,9 @@ grep -q "compound-engineering" "$HOME/.claude/plugins/installed_plugins.json" 2>
 >
 > Then start a new Claude Code session in this directory and run `/start` again. Docs: https://github.com/gsd-build/get-shit-done
 
-**If `ce:missing`** — stop and tell the user, verbatim:
+**If `gsd:ok`** — say nothing and continue. Do not narrate the check.
 
-> I need compound-engineering installed first — that's the code-review reviewer spectrum makeitso routes review to. Run these two commands here in Claude Code:
->
->     /plugin marketplace add EveryInc/compound-engineering-plugin
->     /plugin install compound-engineering@compound-engineering-plugin
->
-> Then run `/start` again.
-
-**If both are missing** — list both blocks above so the user can install in sequence.
-
-**If both `:ok`** — say nothing and continue. Do not narrate the check.
+Code review is handled by makeitso's bundled `/makeitso-review` (six reviewer subagents — correctness, testing, maintainability, simplicity, security, performance). It's installed automatically with this plugin. If the user wants the richer compound-engineering reviewer spectrum instead, they can install it separately and set `code_review_command` to `/ce-code-review` in `.planning/config.json`.
 
 ## Step 3 — Bootstrap global skills (first-run only)
 
@@ -89,7 +80,7 @@ mkdir -p .planning
 cp ${CLAUDE_PLUGIN_ROOT}/templates/planning-config.json .planning/config.json
 ```
 
-This installs the makeitso defaults (correct `agent_skills` injection with `global:` prefixes, code-review routing to `/ce-code-review`, sensible gate posture).
+This installs the makeitso defaults (correct `agent_skills` injection with `global:` prefixes, code-review routing to `/makeitso-review`, sensible gate posture).
 
 **If it exists:** Check whether it has `agent_skills` configured for the triage skill on the right GSD agent slugs (`gsd-verifier`, `gsd-plan-checker`, `gsd-integration-checker`, `gsd-executor`, `gsd-nyquist-auditor`, `gsd-assumptions-analyzer`). If not, ask the user: "This directory already has GSD configured. I can layer makeitso on top, or you can keep using GSD as-is. Which do you want?" — and respect their answer.
 
@@ -133,19 +124,37 @@ Once the user confirms, choose the right GSD entry point:
 
 Pass along the user's idea and the product context you gathered. **Do not let GSD's own discussion phase re-interview the user with technical questions.** The agent_skills injection handles the subagent side; your in-context discipline handles the orchestrator side. If GSD's workflow tries to ask the user a technical question (even one rephrased to sound product-like), apply the triage skill and answer it yourself.
 
-## Step 8 — Run autonomously
+## Step 8 — Run autonomously, phase by phase
 
-After discussion, invoke `/gsd-autonomous` to run discuss → plan → execute → review without further human gates (subject to safety thresholds in the planning config).
+After GSD has planned the roadmap and phases, you drive the per-phase loop yourself using `/makeitso-autopilot`. This is the autonomous code → review → fix → re-review loop, owned by makeitso rather than delegated to GSD's autonomous mode (which doesn't review per-phase).
 
-While GSD runs:
+For each phase from the roadmap, in order:
+
+1. **Run the autopilot for that phase:**
+
+   ```
+   /makeitso-autopilot ${PHASE_NUMBER}
+   ```
+
+   This executes the phase's plans, runs `/makeitso-review`, and fix-loops on HIGH findings up to 3 times. It returns when the phase is `ship`-clean, when a `rework` verdict appears, or when the iteration cap is hit.
+
+2. **If the autopilot returns "needs human"** (rework verdict or cap hit) — stop the autonomous flow. Surface the latest review report and the autopilot's summary. Ask the user, in plain English, how they want to proceed: "There are problems I couldn't fix automatically on phase ${N}. Here's what's left. Want me to try a different approach, walk you through fixing it, or pause this for now?"
+
+3. **If the autopilot returns "phase done"** — honor the `gates.confirm_transition` flag from `.planning/config.json`:
+   - If `confirm_transition: true` → pause and ask the user, product-language only: "Phase ${N} (${PHASE_NAME}) is done. [one-paragraph summary of what now exists]. Ready to move on to phase ${N+1} (${NEXT_PHASE_NAME})?"
+   - If `confirm_transition: false` → continue straight to the next phase without prompting.
+
+4. **Repeat** until all phases are done.
+
+While the autopilot runs each phase:
 - **Watch for any user-prompt event.** Apply the triage skill before letting it surface. Product → pass through in plain English. Technical → answer yourself, log to `.planning/<phase>/DECISIONS.md`, signal proceed.
 - **Cost / time / scope walls:** these are product-level. Surface in plain English: "This is taking longer than expected — about [N] hours of work and [M] decisions to make. Want me to keep going, take a different approach, or pause?"
 
 ## Step 9 — Report
 
-When work is done, summarize in product language:
+When all phases are done, summarize in product language:
 
-> "Done. Here's what's now in place: [one paragraph]. Here's how to try it: [one short instruction]. [N] technical decisions were made along the way — they're in `.planning/<phase>/DECISIONS.md` if you want to review them."
+> "Done. Here's what's now in place: [one paragraph]. Here's how to try it: [one short instruction]. [N] technical decisions were made along the way — they're in `.planning/<phase>/DECISIONS.md` if you want to review them. The autopilot caught and fixed [M] issues during review along the way."
 
 Do not list every commit. Do not show the diff unless asked. Match the user's level — non-dev users want to know "is it working" and "how do I use it," nothing more.
 
